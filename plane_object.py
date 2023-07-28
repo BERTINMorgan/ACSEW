@@ -18,6 +18,29 @@ class Radar:
     def __init__(self):
         self.cone = 35      #cone angle in °
         self.range = 15000  #range in meters
+        
+        self.statut = False #Statut of the radar
+        
+        
+    def seek_objetcs(self,porteur,objects):
+        detection = {}
+        n_detection = 0
+
+        for poi in objects:
+            
+            distance_plane_to_poi = np.linalg.norm(poi.pos-porteur.pos)
+            angle_plane_heading_to_poi = np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi-porteur.cap
+            detected = self.range**3*poi.rcs/((distance_plane_to_poi**4)*(4*np.pi)**3)>=1e-3
+            
+            if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone/2 and detected:
+                print("DETECTION :")
+                print(distance_plane_to_poi)
+                print(angle_plane_heading_to_poi)
+                
+                n_detection += 1
+                detection[n_detection] = poi.pos
+                
+        return detection
 
     def load_radar(self,radar_name):
                 # Read JSON file
@@ -29,6 +52,7 @@ class Radar:
                 
     def print_data(self):
         print(f"-Range of the radar: {self.range} m\n-Cone of the radar : {self.cone}°")
+        print(f"-Radar activated : {self.statut}")
         
 #Class passiveEW
 #Set by a range
@@ -84,23 +108,39 @@ class ElectronicWarfareSystem:
         ax.set_aspect('equal', adjustable='box')
         
 class Plane:
-    def __init__(self,pos=np.array([0,0]),cap=0):
+    def __init__(self,pos=np.array([0,0]),cap=0, speed=np.array([0,0]),rcs = 10):
         self.EWS = ElectronicWarfareSystem()
         self.pos = pos #Plane position in meters
         self.cap = cap # Plane cap in degrees
+        self.speed = speed # Plane speed in meters per secondes
+        self.rcs = rcs
+        
+        self.operational = True # Boolean for the statut of the plane (True = living, False = dead)
+        self.detection = {}
+        
+    def switch_radar(self):
+        self.EWS.Radar.statut = not(self.EWS.Radar.statut)
+        
+    def ews_check(self,planes):
+        self.detection = self.EWS.Radar.seek_objetcs(self, planes)
         
     def print_data(self):
-        print("Plane data :")
+        print("Plane data : ")
         print(f"-Position : x={self.pos[0]}, y={self.pos[1]}")
-        print(f"-Cap : {self.cap}°\n")
-        print("Electronic Warfare System : \n")
+        print(f"-Cap : {self.cap}°")
+        print(f"-radar cross section : {self.rcs} m^2")
+        print("\nElectronic Warfare System :")
         self.EWS.print_data()
     
         
-Rafale = Plane()
-Rafale.EWS.shema()
+Rafale = Plane(cap = 0)
 Rafale.EWS.Radar.load_radar("RBE-2")
 Rafale.EWS.PassiveEW.load_passiveEW("PGE-1")
-Rafale.EWS.shema()
+Rafale.switch_radar()
+Rafale.print_data()
 
+mig = Plane()
+mig.pos = np.array([0,2000])
 
+Rafale.ews_check([mig])
+print(Rafale.detection)

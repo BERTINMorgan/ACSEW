@@ -26,7 +26,7 @@ class Simulation:
 
         pygame.display.set_caption("ACSEW Simulation")
         pygame.display.set_icon(icon)
-        self.screen = pygame.display.set_mode((1080,720))
+        self.screen = pygame.display.set_mode((1280,720))
 
         self.background = pygame.image.load("assets/ui/bg.png")
         self.running = True
@@ -37,6 +37,8 @@ class Simulation:
         self.dt = 1/30
         self.scroll_value = 0.95
         self.distortion = 1
+        
+        self.pressed = {}
         
     def add_plane(self,plane):
         self.planes.append(plane)
@@ -66,6 +68,23 @@ class Simulation:
     
     def player_switch_radar(self,player_plane):
         player_plane.switch_radar()
+    
+    def turn_left(self,player_plane):
+        player_plane.turn = 1
+    
+    def turn_right(self,player_plane):
+        player_plane.turn = -1
+    
+    def straight(self,player_plane):
+        player_plane.turn = 0
+    
+    def throttle_up(self,player_plane):
+        if player_plane.throttle<=0.950001:
+            player_plane.throttle += 0.05
+    
+    def throttle_down(self,player_plane):
+        if player_plane.throttle>=0.2:
+            player_plane.throttle -= 0.05
     
     def scroll(self,zoom_dir):
         self.distortion = self.scroll_value**zoom_dir

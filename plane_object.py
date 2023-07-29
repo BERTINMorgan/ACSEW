@@ -87,9 +87,7 @@ class Radar:
             received_power = poi.rcs * self.range**4 / distance_plane_to_poi**4
             
             if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone/2 and received_power>=1:
-                print("DETECTION :")
-                print(distance_plane_to_poi)
-                print(angle_plane_heading_to_poi)
+                print(f"DETECTION : {received_power}")
                 
                 n_detection += 1
                 detection[n_detection] = poi.pos
@@ -145,6 +143,8 @@ class Plane(pygame.sprite.Sprite):
         self.throttle = throttle
         self.turn = 0
         
+        self.turn_rate = 180
+        
         super().__init__()
         self.operational = True # Boolean for the statut of the plane (True = living, False = dead)
         self.detection = {}
@@ -181,7 +181,7 @@ class Plane(pygame.sprite.Sprite):
             self.throttle = 1
         
         self.speed = self.max_speed * self.throttle
-        ##self.cap = self.cap + self.turn * self.turn_rate * dt
+        self.cap = self.cap + self.turn * self.turn_rate * dt
         
         self.image, self.rect = rot_center(self.image_init, self.cap, self.pos[0],self.pos[1])
         speed_u = self.speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])

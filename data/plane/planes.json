@@ -10,7 +10,7 @@
     },
     "Mig": {
         "rcs": 5,
-        "V_max": 600,
+        "V_max": 680,
         "g_max": 9,
         "skin": "mig.png",
         "gun": "30M791",

@@ -22,11 +22,11 @@ def rot_center(image, angle, x, y):
 
 class Bullet(pygame.sprite.Sprite):
     
-    def __init__(self,pos,cap,speed):
+    def __init__(self,pos,cap,max_speed):
         super().__init__()
         self.pos = pos
         self.cap = cap
-        self.speed = speed
+        self.max_speed = max_speed
         
         self.image, self.rect = rot_center(pygame.image.load("assets/items/bullet.png"), self.cap, self.pos[0], self.pos[1])
   
@@ -34,7 +34,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.y = self.pos[1]
         
     def update(self,dt):
-        speed_u = self.speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])
+        speed_u = self.max_speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])
         self.pos = self.pos + speed_u*dt
         self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
@@ -44,9 +44,18 @@ class Bullet(pygame.sprite.Sprite):
 
 class Gun:
     
-    def __init__(self,n_bullet = 300, velocity = 1000):
+    def __init__(self,n_bullet = 300, max_speed = 1000):
+        self.name = ""
         self.n_bullet = n_bullet
-        self.velocity = velocity
+        self.max_speed = max_speed
+        
+    def load(self, gun_name):
+                # Read JSON file
+        with open("data/plane/Guns/guns.json") as fp:
+          gun_dict = json.load(fp)
+        
+        self.n_bullet = gun_dict[gun_name]["ammo"]
+        self.max_speed = gun_dict[gun_name]["max_speed"]
         
     def shoot(self):
         if self.n_bullet >0 : 
@@ -60,9 +69,9 @@ class Gun:
 #child for EW (electronic warfare) class
 class Radar:
     def __init__(self):
+        self.name = ""
         self.cone = 35      #cone angle in °
-        self.range = 15000  #range in meters
-        
+        self.range = 15000  #range in meters        
         self.statut = False #Statut of the radar
         
         
@@ -90,11 +99,12 @@ class Radar:
                 
         return detection
 
-    def load_radar(self,radar_name):
+    def load(self,radar_name):
                 # Read JSON file
         with open("data/plane/EWS/radar/radar.json") as fp:
           radar_dict = json.load(fp)
         
+        self.name = radar_name
         self.range = radar_dict[radar_name]["range"]
         self.cone = radar_dict[radar_name]["cone"]
                 
@@ -107,76 +117,71 @@ class Radar:
 #child for EW (electronic warfare) class
 class PassiveEW:
     def __init__(self):
+        self.name = ""
         self.range = 10000 #Range in meters
         
-    def load_passiveEW(self,passiveEW_name):
+    def load(self,passiveEW_name):
         with open("data/plane/EWS/passiveEW/passiveEW.json") as fp:
          PEW_dict = json.load(fp)
         
         self.range = PEW_dict[passiveEW_name]["range"]
-        
+        self.name = passiveEW_name
         
     def print_data(self):
         print(f"-Range of the passive electronic warfare : {self.range} m")
         
-class ElectronicWarfareSystem:
-    def __init__(self):
-        self.Radar = Radar()
-        self.PassiveEW = PassiveEW()
-        
-    def print_data(self):
-        print("RADAR :")
-        self.Radar.print_data()
-        print("Passive EW :")
-        self.PassiveEW.print_data()
-        
-    def shema(self):
-        # PASSIVE EW DATA
-        passiveEWcircle = plt.Circle((0,0),self.PassiveEW.range,color='r')
-        
-        # RADAR DATA
-        patches = []
-        wedge = mpatches.Wedge((0, 0), self.Radar.range, -self.Radar.cone/2+90, self.Radar.cone/2+90)
-        patches.append(wedge)
-        colors = [0,255,0]
-        collection = PatchCollection(patches,alpha = 0.5)
-        collection.set_array(np.array(colors))
-        # MISSILE DATA
-        ## TODO
-        
-        # DISP DATA
-        fig, ax = plt.subplots() # note we must use plt.subplots, not plt.subplot        
-        ax.add_patch(passiveEWcircle)
-        ax.add_collection(collection)
-        
-        super_xy = max([self.Radar.range,self.PassiveEW.range])*1.1
-        
-        ax.set_xlim([-super_xy, super_xy])
-        ax.set_ylim([-super_xy, super_xy])
-        ax.set_aspect('equal', adjustable='box')
-        
 class Plane(pygame.sprite.Sprite):
     
-    def __init__(self,pos=[0,0],cap=0, speed=0,rcs = 10):
-        self.EWS = ElectronicWarfareSystem()
-        self.pos = np.array(pos) #Plane position in meters
-        self.cap = cap # Plane cap in degrees
-        self.speed = speed
-        self.rcs = rcs
+    def __init__(self,pos=[0,0],cap=0, speed=0,rcs = 10, max_speed = 530, max_g = 9,name="Paper",throttle = 0.5):
+        self.name = name
         self.gun = Gun()
+        self.radar = Radar()
+        self.passiveEW = PassiveEW()
+        self.pos = np.array(pos)
+        self.cap = cap
+        self.speed = speed
+        self.load(name)
+        
+        self.throttle = throttle
+        self.turn = 0
         
         super().__init__()
         self.operational = True # Boolean for the statut of the plane (True = living, False = dead)
         self.detection = {}
-        self.image_init = pygame.image.load("assets/planes/paper.png")
         self.image = self.image_init
         self.rect = self.image.get_rect()
         self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
-
+    
+    def load(self,name_plane):
+        with open("data/plane/planes.json") as fp:
+         planes_dict = json.load(fp)
+        
+        self.name = name_plane
+        self.rcs = planes_dict[name_plane]["rcs"]
+        self.max_speed = planes_dict[name_plane]["V_max"]
+        self.max_g = planes_dict[name_plane]["g_max"]
+        self.image_init = pygame.image.load("assets/planes/"+planes_dict[name_plane]["skin"])
+        
+        gun = Gun()
+        radar = Radar()
+        passiveEW = PassiveEW()
+        
+        gun.load(planes_dict[name_plane]["gun"])
+        radar.load(planes_dict[name_plane]["radar"])
+        passiveEW.load(planes_dict[name_plane]["passiveEW"])
+        
+        self.gun = gun
+        self.radar = radar
+        self.passiveEW = passiveEW
     
     def update(self,planes,dt):
         
+        if self.throttle >=1 :
+            self.throttle = 1
+        
+        self.speed = self.max_speed * self.throttle
+        ##self.cap = self.cap + self.turn * self.turn_rate * dt
         
         self.image, self.rect = rot_center(self.image_init, self.cap, self.pos[0],self.pos[1])
         speed_u = self.speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])
@@ -187,17 +192,17 @@ class Plane(pygame.sprite.Sprite):
         self.ews_check(planes)
         
     def switch_radar(self):
-        self.EWS.Radar.statut = not(self.EWS.Radar.statut)
-        print(f"Radar activated : {self.EWS.Radar.statut}")
+        self.radar.statut = not(self.radar.statut)
+        print(f"Radar activated : {self.radar.statut}")
         
     def ews_check(self,planes):
-        if self.EWS.Radar.statut:
-            self.detection = self.EWS.Radar.seek_objects(self, planes)
+        if self.radar.statut:
+            self.detection = self.radar.seek_objects(self, planes)
         
     def shoot(self):
         if self.gun.shoot():
             print(self.gun.n_bullet)
-            return Bullet(self.pos, self.cap, self.gun.velocity)
+            return Bullet(self.pos+np.array(self.rect.size)/2, self.cap, self.gun.max_speed)
         else:
             print("no amo")
         
@@ -207,6 +212,7 @@ class Plane(pygame.sprite.Sprite):
         print(f"-Cap : {self.cap}°")
         print(f"-radar cross section : {self.rcs} m^2")
         print("\nElectronic Warfare System :")
-        self.EWS.print_data()
+        self.radar.print_data()
+        self.passiveEW.print_data()
     
 

@@ -14,6 +14,12 @@ def init_json():
 
     with open("data/plane/EWS/passiveEW/passiveEW.json", "w") as fp:
         json.dump({},fp,indent = 4) 
+
+    with open("data/plane/planes.json", "w") as fp:
+        json.dump({},fp,indent = 4) 
+
+    with open("data/plane/Guns/guns.json", "w") as fp:
+        json.dump({},fp,indent = 4) 
     
 
 def create_radar():
@@ -47,4 +53,41 @@ def create_passiveEW():
     
     with open("data/plane/EWS/passiveEW/PassiveEW.json", "w") as fp:
         json.dump(passiveEW_dict,fp,indent = 6) 
-        
+
+def create_gun():
+    gun_name = input("Name of the gun ?")
+    n = eval(input("Number of bullet aviable ?"))
+    velocity = eval(input("Velocity of the bullet ? (m/s)"))
+    
+    gun_data ={gun_name : {'ammo' : n,'velocity' : velocity}} 
+    
+    # Read JSON file
+    with open("data/plane/Guns/guns.json") as fp:
+      guns_dict = json.load(fp)
+    
+    guns_dict.update(gun_data)
+    
+    with open("data/plane/Guns/guns.json", "w") as fp:
+        json.dump(guns_dict,fp,indent = 6) 
+    
+def create_plane():
+
+    Name = input("Name of the plane : ")
+    rcs = eval(input("Radar Cross Section of the plane (m^2)"))
+    max_speed = eval(input("Max speed of the plane (m/s)"))
+    max_g = eval(input("Max acceleration of the plane (g)"))
+    skin = input("Enter the skin name")
+    gun = input("Enter the name of the canon")
+    passiveEW = input("Enter the name of the passive electronics warfare system")
+    radar = input("Enter the name of the radar")
+    
+    plane_data = {Name : {"rcs" : rcs,"V_max" : max_speed,"g_max":max_g,"skin":skin,"gun":gun,"passiveEW":passiveEW,"radar":radar}}
+     
+    # Read JSON file
+    with open("data/plane/planes.json") as fp:
+      plane_dict = json.load(fp)
+      
+    plane_dict.update(plane_data)
+    
+    with open("data/plane/planes.json", "w") as fp:
+        json.dump(plane_dict,fp,indent = 4) 

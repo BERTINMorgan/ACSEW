@@ -19,6 +19,42 @@ def rot_center(image, angle, x, y):
 
     return rotated_image, new_rect
 
+
+class Bullet(pygame.sprite.Sprite):
+    
+    def __init__(self,pos,cap,speed):
+        super().__init__()
+        self.pos = pos
+        self.cap = cap
+        self.speed = speed
+        
+        self.image, self.rect = rot_center(pygame.image.load("assets/items/bullet.png"), self.cap, self.pos[0], self.pos[1])
+  
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
+        
+    def update(self,dt):
+        speed_u = self.speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])
+        self.pos = self.pos + speed_u*dt
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
+        
+    
+    
+
+class Gun:
+    
+    def __init__(self,n_bullet = 300, velocity = 1000):
+        self.n_bullet = n_bullet
+        self.velocity = velocity
+        
+    def shoot(self):
+        if self.n_bullet >0 : 
+            self.n_bullet -= 1
+            return True
+        else:
+            return False
+
 #Class RADAR
 #Set by a cone and a range
 #child for EW (electronic warfare) class
@@ -30,7 +66,7 @@ class Radar:
         self.statut = False #Statut of the radar
         
         
-    def seek_objetcs(self,porteur,objects):
+    def seek_objects(self,porteur,objects):
 
         detection = {}
         n_detection = 0
@@ -38,7 +74,7 @@ class Radar:
         for poi in objects:
             
             distance_plane_to_poi = np.linalg.norm(poi.pos-porteur.pos)
-            angle_plane_heading_to_poi = np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi-porteur.cap
+            angle_plane_heading_to_poi = (np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi-porteur.cap + 180) % 360
             received_power = poi.rcs * self.range**4 / distance_plane_to_poi**4
             
             if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone/2 and received_power>=1:
@@ -48,6 +84,9 @@ class Radar:
                 
                 n_detection += 1
                 detection[n_detection] = poi.pos
+                
+        if len(detection)!=0:
+            print(f"{len(detection)} plane(s) detected")
                 
         return detection
 
@@ -118,36 +157,49 @@ class ElectronicWarfareSystem:
         
 class Plane(pygame.sprite.Sprite):
     
-    def __init__(self,pos=[0,0],cap=0, speed=[0,0],rcs = 10):
+    def __init__(self,pos=[0,0],cap=0, speed=0,rcs = 10):
         self.EWS = ElectronicWarfareSystem()
         self.pos = np.array(pos) #Plane position in meters
         self.cap = cap # Plane cap in degrees
-        self.speed = np.array(speed) # Plane speed in meters per secondes
+        self.speed = speed
         self.rcs = rcs
+        self.gun = Gun()
         
         super().__init__()
         self.operational = True # Boolean for the statut of the plane (True = living, False = dead)
         self.detection = {}
-        self.image_init = pygame.image.load("data/plane/skins/paper.png")
+        self.image_init = pygame.image.load("assets/planes/paper.png")
         self.image = self.image_init
         self.rect = self.image.get_rect()
         self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
 
     
-    def update(self,dt):
+    def update(self,planes,dt):
+        
         
         self.image, self.rect = rot_center(self.image_init, self.cap, self.pos[0],self.pos[1])
-    
-        self.pos = self.pos + self.speed * dt
+        speed_u = self.speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])
+        self.pos = self.pos + speed_u * dt
         self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
         
+        self.ews_check(planes)
+        
     def switch_radar(self):
         self.EWS.Radar.statut = not(self.EWS.Radar.statut)
+        print(f"Radar activated : {self.EWS.Radar.statut}")
         
     def ews_check(self,planes):
-        self.detection = self.EWS.Radar.seek_objetcs(self, planes)
+        if self.EWS.Radar.statut:
+            self.detection = self.EWS.Radar.seek_objects(self, planes)
+        
+    def shoot(self):
+        if self.gun.shoot():
+            print(self.gun.n_bullet)
+            return Bullet(self.pos, self.cap, self.gun.velocity)
+        else:
+            print("no amo")
         
     def print_data(self):
         print("Plane data : ")

@@ -9,7 +9,15 @@ import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
 import numpy as np
 import json
+import pygame
 
+
+def rot_center(image, angle, x, y):
+    
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center = image.get_rect(center = (x, y)).center)
+
+    return rotated_image, new_rect
 
 #Class RADAR
 #Set by a cone and a range
@@ -23,6 +31,7 @@ class Radar:
         
         
     def seek_objetcs(self,porteur,objects):
+
         detection = {}
         n_detection = 0
 
@@ -30,9 +39,9 @@ class Radar:
             
             distance_plane_to_poi = np.linalg.norm(poi.pos-porteur.pos)
             angle_plane_heading_to_poi = np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi-porteur.cap
-            detected = self.range**3*poi.rcs/((distance_plane_to_poi**4)*(4*np.pi)**3)>=1e-3
+            received_power = poi.rcs * self.range**4 / distance_plane_to_poi**4
             
-            if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone/2 and detected:
+            if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone/2 and received_power>=1:
                 print("DETECTION :")
                 print(distance_plane_to_poi)
                 print(angle_plane_heading_to_poi)
@@ -107,16 +116,32 @@ class ElectronicWarfareSystem:
         ax.set_ylim([-super_xy, super_xy])
         ax.set_aspect('equal', adjustable='box')
         
-class Plane:
-    def __init__(self,pos=np.array([0,0]),cap=0, speed=np.array([0,0]),rcs = 10):
+class Plane(pygame.sprite.Sprite):
+    
+    def __init__(self,pos=[0,0],cap=0, speed=[0,0],rcs = 10):
         self.EWS = ElectronicWarfareSystem()
-        self.pos = pos #Plane position in meters
+        self.pos = np.array(pos) #Plane position in meters
         self.cap = cap # Plane cap in degrees
-        self.speed = speed # Plane speed in meters per secondes
+        self.speed = np.array(speed) # Plane speed in meters per secondes
         self.rcs = rcs
         
+        super().__init__()
         self.operational = True # Boolean for the statut of the plane (True = living, False = dead)
         self.detection = {}
+        self.image_init = pygame.image.load("data/plane/skins/paper.png")
+        self.image = self.image_init
+        self.rect = self.image.get_rect()
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
+
+    
+    def update(self,dt):
+        
+        self.image, self.rect = rot_center(self.image_init, self.cap, self.pos[0],self.pos[1])
+    
+        self.pos = self.pos + self.speed * dt
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
         
     def switch_radar(self):
         self.EWS.Radar.statut = not(self.EWS.Radar.statut)
@@ -132,15 +157,4 @@ class Plane:
         print("\nElectronic Warfare System :")
         self.EWS.print_data()
     
-        
-Rafale = Plane(cap = 0)
-Rafale.EWS.Radar.load_radar("RBE-2")
-Rafale.EWS.PassiveEW.load_passiveEW("PGE-1")
-Rafale.switch_radar()
-Rafale.print_data()
 
-mig = Plane()
-mig.pos = np.array([0,2000])
-
-Rafale.ews_check([mig])
-print(Rafale.detection)

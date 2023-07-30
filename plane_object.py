@@ -4,9 +4,7 @@ Created on Wed Jun 21 09:29:09 2023
 
 @author: morga
 """
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.collections import PatchCollection
+
 import numpy as np
 import json
 import pygame
@@ -19,6 +17,19 @@ def rot_center(image, angle, x, y):
 
     return rotated_image, new_rect
 
+class Datalink:
+    def __init__(self):
+        self.messages = {}
+        self.msg_counter = 0
+    
+    def new_msg(self,pos,power,title,message,sender):
+        msg = {"pos":pos,"power":power,"title":title,"body":message,"sender":sender}
+        self.messages.update({self.msg_counter:msg})
+        self.msg_counter += 1
+
+    def print_msg(self,numero):
+        print(self.messages[numero])
+        
 
 class Bullet(pygame.sprite.Sprite):
     
@@ -81,19 +92,20 @@ class Radar:
         n_detection = 0
 
         for poi in objects:
-            
-            distance_plane_to_poi = np.linalg.norm(poi.pos-porteur.pos)
-            angle_plane_heading_to_poi = (np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi-porteur.cap + 180) % 360
-            received_power = poi.rcs * self.range**4 / distance_plane_to_poi**4
-            
-            if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone/2 and received_power>=1:
-                print(f"DETECTION : {received_power}")
+            if poi != porteur:
+                distance_plane_to_poi = np.linalg.norm(poi.pos-porteur.pos)
+                angle_plane_heading_to_poi = -(np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi+porteur.cap) % 360
+                received_power = poi.rcs * self.range**4 / distance_plane_to_poi**4
                 
-                n_detection += 1
-                detection[n_detection] = poi.pos
+                print(angle_plane_heading_to_poi)
+                
+                if distance_plane_to_poi <= self.range and np.abs(angle_plane_heading_to_poi) <= self.cone and received_power>=1:
+                    
+                    n_detection += 1
+                    detection[n_detection] = {"distance":distance_plane_to_poi,"angle":angle_plane_heading_to_poi,"signature":received_power}
                 
         if len(detection)!=0:
-            print(f"{len(detection)} plane(s) detected")
+            print(detection)
                 
         return detection
 

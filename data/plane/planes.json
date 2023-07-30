@@ -34,5 +34,23 @@
         "gun": "30M791",
         "passiveEW": "PGE-1",
         "radar": "X-15"
+    },
+    "F22": {
+        "rcs": 0.000000001,
+        "V_max": 680,
+        "g_max": 9,
+        "skin": "F22.png",
+        "gun": "30M791",
+        "passiveEW": "PGE-1",
+        "radar": "X-15"
+    },
+    "AWACS": {
+        "rcs": 35,
+        "V_max": 300,
+        "g_max": 3,
+        "skin": "AWACS.png",
+        "gun": "30M791",
+        "passiveEW": "PGE-1",
+        "radar": "AWACS"
     }
 }

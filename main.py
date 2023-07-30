@@ -14,45 +14,52 @@ import simulation_environement as sim_env
 
 sim = sim_env.Simulation()
 
-Rafale = Plane(name="Rafale", pos = [10000,10000])
+Rafale = Plane(name="Rafale", pos = [500,500])
 Mig = Plane(name="Mig",pos=[800,360],throttle = 0.2)
 Paper = Plane(name="Paper",cap = -135)
 Drone = Plane(name="Drone",cap = -135,pos = [30,30])
+F22 = Plane(name="F22",cap = -135,pos = [-30,-30])
+AWACS = Plane(name="AWACS",cap = -90,pos = [500,20])
 
 
 sim.add_plane(Rafale)
-sim.add_plane(Mig)
+#sim.add_plane(Mig)
 sim.add_plane(Paper)
-sim.add_plane(Drone)
+#sim.add_plane(Drone)
+#sim.add_plane(F22)
+#sim.add_plane(AWACS)
 
-last_mouse_button_statu = 0
 pygame.mixer.init()
 crash_sound = pygame.mixer.Sound("data/sounds/shot.wav")
 
+piloted_plane = Rafale
+
 while sim.running: 
     
-    Mig.cap += 25 * sim.dt
-    
+    #Mig.cap += 25 * sim.dt
+    #F22.cap = sim_env.target_direction(F22,Rafale)
+    #F22.throttle = sim_env.target_distance(F22,Rafale)/500
+      
     sim.update()
 
     pygame.display.flip()
     
     if sim.pressed.get(pygame.K_SPACE):
-        sim.player_canon(Rafale)
+        sim.player_canon(piloted_plane)
         pygame.mixer.Sound.play(crash_sound)
         pygame.mixer.music.stop()
     if sim.pressed.get(pygame.K_RETURN):
-        sim.player_switch_radar(Rafale)
+        sim.player_switch_radar(piloted_plane)
     if sim.pressed.get(pygame.K_LEFT):
-        sim.turn_left(Rafale)
+        sim.turn_left(piloted_plane)
     elif sim.pressed.get(pygame.K_RIGHT):
-        sim.turn_right(Rafale)
+        sim.turn_right(piloted_plane)
     else:
-        sim.straight(Rafale)
+        sim.straight(piloted_plane)
     if sim.pressed.get(pygame.K_UP):
-        sim.throttle_up(Rafale)
+        sim.throttle_up(piloted_plane)
     if sim.pressed.get(pygame.K_DOWN):
-        sim.throttle_down(Rafale)
+        sim.throttle_down(piloted_plane)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

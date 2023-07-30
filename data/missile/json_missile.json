@@ -1,0 +1,32 @@
+{
+    "Meteor_MBDA" :
+        {
+            "mass": 185,
+            "speed": 1500,
+            "no_escape_zone": 50000,
+            "range": 150000,
+            "deg_cone": 30, 
+            "range_cone": 20000,
+            "rotation_angle" : 50
+        },
+    "Mica" :
+        {
+            "mass": 112,
+            "speed": 1320,
+            "no_escape_zone": 0,
+            "range": 80000,
+            "deg_cone": 30,
+            "range_cone": 20000,
+            "rotation_angle" : 50
+        },
+    "SCALP-EG" :
+        {
+            "mass": 1300,
+            "speed": 274,
+            "no_escape_zone": 0,
+            "range": 560000,
+            "deg_cone": 30,
+            "range_cone": 20000,
+            "rotation_angle" : 10
+        }    
+}

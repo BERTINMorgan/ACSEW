@@ -5,22 +5,7 @@ Created on Wed Jun 21 10:58:28 2023
 @author: morga
 """
 
-import json
-
-def init_json():
-
-    with open("data/plane/EWS/radar/radar.json", "w") as fp:
-        json.dump({},fp,indent = 4)
-
-    with open("data/plane/EWS/passiveEW/passiveEW.json", "w") as fp:
-        json.dump({},fp,indent = 4) 
-
-    with open("data/plane/planes.json", "w") as fp:
-        json.dump({},fp,indent = 4) 
-
-    with open("data/plane/Guns/guns.json", "w") as fp:
-        json.dump({},fp,indent = 4) 
-    
+import json 
 
 def create_radar():
     radarName = input("Name of the radar ?")

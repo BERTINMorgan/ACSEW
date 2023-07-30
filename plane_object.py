@@ -94,7 +94,10 @@ class Radar:
         for poi in objects:
             if poi != porteur:
                 distance_plane_to_poi = np.linalg.norm(poi.pos-porteur.pos)
-                angle_plane_heading_to_poi = -(np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi+porteur.cap) % 360
+                angle_plane_heading_to_poi = ((np.arctan2((poi.pos[0]-porteur.pos[0]),-(poi.pos[1]-porteur.pos[1]))*180/np.pi)+porteur.cap)
+                
+                
+                #-(np.arctan2(poi.pos[0]-porteur.pos[0],poi.pos[1]-porteur.pos[1])*180/np.pi+porteur.cap) % 360
                 received_power = poi.rcs * self.range**4 / distance_plane_to_poi**4
                 
                 print(angle_plane_heading_to_poi)
@@ -193,7 +196,7 @@ class Plane(pygame.sprite.Sprite):
             self.throttle = 1
         
         self.speed = self.max_speed * self.throttle
-        self.cap = self.cap + self.turn * self.turn_rate * dt
+        self.cap = (self.cap + self.turn * self.turn_rate * dt) % 360
         
         self.image, self.rect = rot_center(self.image_init, self.cap, self.pos[0],self.pos[1])
         speed_u = self.speed * np.array([np.sin(-self.cap*np.pi/180),-np.cos(self.cap*np.pi/180)])

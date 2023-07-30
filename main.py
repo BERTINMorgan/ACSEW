@@ -22,23 +22,25 @@ F22 = Plane(name="F22",cap = -135,pos = [-30,-30])
 AWACS = Plane(name="AWACS",cap = -90,pos = [500,20])
 
 
-sim.add_plane(Rafale)
-#sim.add_plane(Mig)
-sim.add_plane(Paper)
+#sim.add_plane(Rafale)
+#sim.add_plane(Paper)
+sim.add_plane(Mig)
 #sim.add_plane(Drone)
 #sim.add_plane(F22)
-#sim.add_plane(AWACS)
+sim.add_plane(AWACS)
 
 pygame.mixer.init()
 crash_sound = pygame.mixer.Sound("data/sounds/shot.wav")
 
-piloted_plane = Rafale
+piloted_plane = AWACS
 
 while sim.running: 
     
-    #Mig.cap += 25 * sim.dt
-    #F22.cap = sim_env.target_direction(F22,Rafale)
-    #F22.throttle = sim_env.target_distance(F22,Rafale)/500
+    Mig.cap += 25 * sim.dt    
+    AWACS.cap -= 10 * sim.dt
+    
+    F22.cap = sim_env.target_direction(F22,Rafale)
+    F22.throttle = sim_env.target_distance(F22,Rafale)/500
       
     sim.update()
 

@@ -22,17 +22,17 @@ F22 = Plane(name="F22",cap = -135,pos = [-30,-30])
 AWACS = Plane(name="AWACS",cap = -90,pos = [500,20])
 
 
-#sim.add_plane(Rafale)
-#sim.add_plane(Paper)
+sim.add_plane(Rafale)
+sim.add_plane(Paper)
 sim.add_plane(Mig)
-#sim.add_plane(Drone)
-#sim.add_plane(F22)
+sim.add_plane(Drone)
+sim.add_plane(F22)
 sim.add_plane(AWACS)
 
 pygame.mixer.init()
 crash_sound = pygame.mixer.Sound("data/sounds/shot.wav")
 
-piloted_plane = AWACS
+piloted_plane = Rafale
 
 while sim.running: 
     
@@ -77,4 +77,4 @@ while sim.running:
 
 
     time.sleep(sim.dt)
-    
+

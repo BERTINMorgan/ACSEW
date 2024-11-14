@@ -14,12 +14,12 @@ import simulation_environement as sim_env
 
 sim = sim_env.Simulation()
 
-Rafale = Plane(name="Rafale", pos = [500,500])
-Mig = Plane(name="Mig",pos=[800,360],throttle = 0.2)
-Paper = Plane(name="Paper",cap = -135)
-Drone = Plane(name="Drone",cap = -135,pos = [30,30])
-F22 = Plane(name="F22",cap = -135,pos = [-30,-30])
-AWACS = Plane(name="AWACS",cap = -90,pos = [500,20])
+Rafale  = Plane(name="Rafale", pos = [500,500])
+Mig     = Plane(name="Mig",pos=[800,360],throttle = 0.2)
+Paper   = Plane(name="Paper",cap = -135)
+Drone   = Plane(name="Drone",cap = -135,pos = [30,30])
+F22     = Plane(name="F22",cap = -135,pos = [-30,-30])
+AWACS   = Plane(name="AWACS",cap = -90,pos = [500,20])
 
 
 sim.add_plane(Rafale)
